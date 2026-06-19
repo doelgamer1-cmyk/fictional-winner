@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>A Special Surprise For You ♡</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Great+Vibes&display=swap" rel="stylesheet">
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'ui-sans-serif', 'sans-serif'],
+            serif: ['"Playfair Display"', 'Georgia', 'serif'],
+            handwritten: ['"Great Vibes"', 'cursive'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    [x-cloak] { display: none !important; }
+    .noise-bg {
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.02'/%3E%3C/svg%3E");
+    }
+    .flip-card { perspective: 1000px; }
+    .flip-card-inner {
+      transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      transform-style: preserve-3d;
+    }
+    .flip-card.flipped .flip-card-inner { transform: rotateY(180deg); }
+    .flip-card-front, .flip-card-back {
+      backface-visibility: hidden;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+    .flip-card-back { transform: rotateY(180deg); }
+  </style>
+</head>
+<body 
+  class="h-full noise-bg transition-colors duration-1000 select-none overflow-x-hidden"
+  :style="'background-color: ' + currentTheme().bg"
+  x-data="giftStore()"
+  x-init="initApp()"
+>
+
+  <!-- SOUNDTRACK FLOATING WIDGET -->
+  <div class="fixed bottom-6 left-6 z-50" x-show="musicTrack !== 'silent'">
+    <div class="bg-white/95 backdrop-blur-md px-4 py-3 border border-neutral-200 shadow-md flex items-center gap-4">
+      <div class="w-10 h-10 rounded-full bg-neutral-900 flex items-center justify-center relative">
+        <div class="w-3 h-3 rounded-full bg-red-100"></div>
+      </div>
+      <div class="flex flex-col text-left">
+        <span class="text-[8px] uppercase tracking-wider text-neutral-400 font-bold">Soundtrack</span>
+        <button @click="togglePlay()" class="text-xs font-semibold hover:text-pink-600 transition-colors mt-0.5">
+          <span x-text="isPlaying ? '🔊 Playing...' : '🔇 Play Melody'"></span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <button 
+    @click="isCustomizerOpen = true"
+    class="fixed top-6 right-6 z-40 bg-white border border-neutral-900 px-4 py-2 text-[10px] uppercase tracking-widest font-extrabold"
+  >
+    Customize
+  </button>
+
+  <div class="min-h-screen flex flex-col justify-between py-12 px-4 relative z-10 text-center">
+    <div class="flex-grow flex flex-col justify-center items-center">
+      
+      <!-- STAGE A: ENVELOPE -->
+      <template x-if="activeScene === 'envelope'">
+        <div class="w-full max-w-lg" x-transition>
+          <div class="mb-4">
+            <span class="font-handwritten text-4xl text-neutral-500" x-text="'Dear ' + recipientName + ','"></span>
+          </div>
+          
+          <div 
+            @click="openEnvelope()"
+            class="relative bg-[#FCFAF6] border-2 border-neutral-900 w-full aspect-[4/3] shadow-md cursor-pointer flex flex-col justify-between p-8 transform hover:-translate-y-1 transition-transform"
+          >
+            <div class="flex justify-between text-[10px] text-neutral-400 font-mono">
+              <span>SPECIAL MAIL // 2026</span>
+              <span class="rotate-3 font-serif">❦</span>
+            </div>
+
+            <div class="flex flex-col items-center gap-2">
+              <div class="w-16 h-16 rounded-full bg-red-50 border border-red-200 flex items-center justify-center">
+                <i data-lucide="heart" class="w-8 h-8 text-red-500 fill-red-400"></i>
+              </div>
+              <span class="text-[10px] uppercase tracking-[0.2em] text-neutral-500 font-bold">Open Wax Seal</span>
+            </div>
+
+            <div class="flex justify-between items-end">
+              <span class="font-handwritten text-2.5xl text-neutral-400" x-text="'from ' + senderName"></span>
+              <span class="text-[9px] font-mono tracking-wider text-neutral-400">JUNE 19, 2026</span>
+            </div>
+          </div>
+        </div>
+      </template>
+
+      <!-- STAGE B: GREETING SURPRISE CARD -->
+      <template x-if="activeScene === 'card'">
+        <div class="w-full max-w-md aspect-[3/4] flex flex-col items-center justify-center animate-fade-in" x-transition>
+          <div class="flip-card w-full h-full" :class="isFlipped ? 'flipped' : ''">
+            <div class="flip-card-inner w-full h-full relative">
+              
+              <!-- COVERS (FRONT) -->
+              <div class="flip-card-front bg-[#FCFAF6] border-2 border-neutral-950 p-8 flex flex-col justify-between shadow-lg">
+                <div class="flex flex-col items-center mt-4">
+                  <span class="text-[10px] uppercase font-bold tracking-widest text-neutral-400" x-text="badgeText"></span>
+                  <h1 class="font-serif text-4xl text-neutral-950 font-normal leading-tight my-8" x-text="mainHeading"></h1>
+                </div>
+
+                <div class="flex flex-col items-center gap-2">
+                  <button @click="addHeart($event)" class="w-12 h-12 rounded-full border border-neutral-900 bg-[#FAF5EB] flex items-center justify-center">
+                    <i data-lucide="heart" class="w-5 h-5 text-red-500 fill-red-400"></i>
+                  </button>
+                  <span class="text-[9px] font-mono text-neutral-400" x-text="heartCount + ' HEARTS SENT'"></span>
+                </div>
+
+                <div class="flex flex-col gap-2">
+                  <button @click="openLetter()" class="w-full py-2.5 bg-neutral-950 text-white text-[10px] font-bold uppercase tracking-widest">
+                    Read Personal Letter
+                  </button>
+                  <button @click="activeScene = 'album'" class="text-[10px] uppercase text-pink-500 hover:text-pink-600 font-bold py-1">
+                    View Polaroid Album 🎞️
+                  </button>
+                </div>
+              </div>
+
+              <!-- CARD WRITING (BACK) -->
+              <div class="flip-card-back bg-[#FCFAF6] border-2 border-neutral-950 p-8 flex flex-col justify-between shadow-lg">
+                <div class="text-left">
+                  <span class="font-handwritten text-xl text-neutral-400 block mb-1">with warmth...</span>
+                  <h2 class="font-serif text-2xl text-neutral-950">My Warmest Greetings</h2>
+                </div>
+
+                <div class="my-4 flex-1 overflow-y-auto max-h-[180px] text-left font-serif text-sm text-neutral-700 italic border-t border-b border-dashed border-neutral-200 py-3 leading-relaxed">
+                  <p class="whitespace-pre-line" x-text="letterBody"></p>
+                </div>
+
+                <div class="flex flex-col gap-2">
+                  <div class="flex justify-between items-end border-b pb-1 mb-2">
+                    <span class="text-[9px] text-neutral-400 font-mono">FROM YOUR FRIEND:</span>
+                    <span class="font-handwritten text-2xl text-neutral-900" x-text="senderName"></span>
+                  </div>
+                  <div class="flex gap-2">
+                    <button @click="isFlipped = false" class="px-3 py-1.5 border border-neutral-300 text-[9px] font-bold uppercase">Cover</button>
+                    <button @click="activeScene = 'album'" class="flex-grow py-1.5 bg-pink-500 text-white text-[9px] font-bold uppercase">View Shared Album</button>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </template>
+
+      <!-- STAGE C: ALBUM GALLERY -->
+      <template x-if="activeScene === 'album'">
+        <div class="w-full max-w-4xl px-4" x-transition>
+          <div class="flex justify-between items-center mb-8 pb-4 border-b">
+            <button @click="activeScene = 'card'" class="px-3 py-1.5 border border-neutral-900 text-[10px] font-bold uppercase">
+              ← Return
+            </button>
+            <span class="font-handwritten text-2xl text-neutral-400">captured memories ♡</span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+            <template x-for="(item, idx) in pData" :key="idx">
+              <div class="bg-[#FCFAF6] border border-neutral-200 p-4 shadow-sm flex flex-col text-left">
+                <div class="w-full aspect-square overflow-hidden bg-neutral-100 border">
+                  <img :src="item.url" class="w-full h-full object-cover">
+                </div>
+                <div class="pt-3 flex-grow flex flex-col justify-between">
+                  <p class="text-xs text-neutral-800 leading-relaxed italic" x-text="item.caption"></p>
+                  <div class="flex justify-between text-[8px] font-mono text-neutral-400 mt-2 border-t pt-1">
+                    <span x-text="item.date"></span>
+                    <span x-text="'PAGE_0' + (idx+1)"></span>
+                  </div>
+                </div>
+              </div>
+            </template>
+          </div>
+        </div>
+      </template>
+
+    </div>
+
+    <!-- HEART FLIGHT INTERACTION SPANNER -->
+    <div id="heart-spawner-container" class="fixed inset-0 pointer-events-none z-50"></div>
+
+    <footer class="text-[9px] font-mono tracking-widest text-neutral-400 mt-4">
+      PERSONALIZED FOR YOU WHOM WE VALUED WITH DEEPEST RESPECTS ♡ 2026
+    </footer>
+  </div>
+
+  <!-- CUSTOMIZER SIDE Drawer -->
+  <div class="fixed inset-x-0 bottom-0 top-0 z-50 flex justify-end" x-show="isCustomizerOpen" x-cloak>
+    <div @click="isCustomizerOpen = false" class="absolute inset-0 bg-neutral-900/30 backdrop-blur-xs"></div>
+    <div class="relative w-full max-w-md h-full bg-[#FCFAF6] border-l border-neutral-900 p-6 overflow-y-auto text-left flex flex-col justify-between">
+      <div>
+        <div class="flex justify-between items-center pb-4 border-b mb-6">
+          <h3 class="font-serif text-lg font-bold">Customize Surprises</h3>
+          <button @click="isCustomizerOpen = false" class="text-neutral-400 hover:text-neutral-950 font-bold">✕</button>
+        </div>
+
+        <div class="space-y-4 text-xs">
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block text-[9px] font-bold uppercase tracking-wider mb-1 text-neutral-500">Recipient</label>
+              <input type="text" x-model="recipientName" class="w-full border p-2 text-sm bg-white font-medium">
+            </div>
+            <div>
+              <label class="block text-[9px] font-bold uppercase tracking-wider mb-1 text-neutral-500">Sender</label>
+              <input type="text" x-model="senderName" class="w-full border p-2 text-sm bg-white font-medium">
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-[9px] font-bold uppercase tracking-wider mb-1 text-neutral-500">Badge Theme</label>
+            <input type="text" x-model="badgeText" class="w-full border p-2 text-sm bg-white">
+          </div>
+
+          <div>
+            <label class="block text-[9px] font-bold uppercase tracking-wider mb-1 text-neutral-500">Greeting Heading</label>
+            <input type="text" x-model="mainHeading" class="w-full border p-2 text-sm bg-white">
+          </div>
+
+          <div>
+            <label class="block text-[9px] font-bold uppercase tracking-wider mb-1 text-neutral-500">Letter Message Body</label>
+            <textarea x-model="letterBody" rows="4" class="w-full border p-2 text-sm bg-white font-serif"></textarea>
+          </div>
+
+          <div>
+            <label class="block text-[9px] font-bold uppercase tracking-wider mb-1 text-neutral-500">Soundtrack Track</label>
+            <select x-model="musicTrack" @change="changeTrack($el.value)" class="w-full border p-2 text-sm bg-white">
+              <option value="happy_birthday">Happy Birthday (Chime)</option>
+              <option value="warm_melody">Warm Synth Lullaby</option>
+              <option value="silent">No Music (Muted)</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-[9px] font-bold uppercase tracking-wider mb-2 text-neutral-500">Visual Palette Color</label>
+            <div class="grid grid-cols-4 gap-2">
+              <template x-for="(theme, key) in themes" :key="key">
+                <button 
+                  @click="themeColor = key"
+                  class="border p-2 text-center text-[10px] flex flex-col items-center gap-1 bg-white"
+                  :class="themeColor === key ? 'border-neutral-900 font-bold bg-neutral-50' : 'border-neutral-300'"
+                >
+                  <div class="w-4 h-4 rounded-full border" :style="'background-color: ' + theme.color"></div>
+                  <span x-text="key"></span>
+                </button>
+              </template>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button @click="isCustomizerOpen = false" class="w-full py-3 bg-neutral-950 text-white font-bold uppercase text-[10px] tracking-widest mt-6">
+        Apply customizations
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // Safe Audio Synthesis frequencies mapping
+    const FREQS = { C4: 261.63, D4: 293.66, E4: 329.63, F4: 349.23, G4: 392.00, A4: 440.00, B4: 493.88, C5: 523.25, D5: 587.33, E5: 659.25, F5: 698.46, G5: 783.99 };
+    
+    const MELODIES = {
+      happy_birthday: [
+        { n: 'G4', d: 0.5 }, { n: 'G4', d: 0.5 }, { n: 'A4', d: 1 }, { n: 'G4', d: 1 }, { n: 'C5', d: 1 }, { n: 'B4', d: 2 },
+        { n: 'G4', d: 0.5 }, { n: 'G4', d: 0.5 }, { n: 'A4', d: 1 }, { n: 'G4', d: 1 }, { n: 'D5', d: 1 }, { n: 'C5', d: 2 }
+      ],
+      warm_melody: [
+        { n: 'C4', d: 1 }, { n: 'E4', d: 1 }, { n: 'G4', d: 1 }, { n: 'C5', d: 1 },
+        { n: 'A4', d: 1 }, { n: 'C5', d: 1 }, { n: 'E5', d: 1 }, { n: 'G5', d: 2 }
+      ]
+    };
+
+    let audioCtx = null;
+    let mainGain = null;
+    let timerId = null;
+    let index = 0;
+
+    function playNote(trackName) {
+      if (!audioCtx || trackName === 'silent') return;
+      const m = MELODIES[trackName] || [];
+      if (m.length === 0) return;
+
+      const note = m[index];
+      const hz = FREQS[note.n] || 440;
+      const dur = note.d * 0.6; // step duration multiplier
+
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      
+      osc.type = 'triangle';
+      osc.frequency.value = hz;
+
+      gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+
+      osc.connect(gain);
+      gain.connect(mainGain);
+      osc.start();
+      osc.stop(audioCtx.currentTime + dur);
+
+      index = (index + 1) % m.length;
+      timerId = setTimeout(() => playNote(trackName), dur * 1000);
+    }
+
+    function giftStore() {
+      return {
+        recipientName: 'Michelle',
+        senderName: 'Your Friend',
+        badgeText: 'A BIRTHDAY SURPRISE',
+        mainHeading: 'a little something for you',
+        letterBody: `Happiest birthday michelle i wish this birthday give you new perspective to live a life ik teri life me bhot problem rahe hai or tune bhot suffer kiya hai but ik that you are a strong girl and you can do everything dekh i love you so so much you know that how much i can try to be a non chalant but tujhe pata hai i am very chalant for you bas i am trying to move on to act karna padta ha baki love you baby hehe🎂`,
+        themeColor: 'Rose',
+        musicTrack: 'happy_birthday',
+        isPlaying: false,
+        isCustomizerOpen: false,
+        activeScene: 'envelope',
+        isFlipped: false,
+        heartCount: 12,
+
+        themes: {
+          Warm: { bg: '#FAF6EE', color: '#f5efe6' },
+          Slate: { bg: '#F5F5F7', color: '#e5e5eb' },
+          Rose: { bg: '#FCF3F5', color: '#fadce2' },
+          Forest: { bg: '#F2F6F3', color: '#d8e5dc' }
+        },
+
+        pData: [
+          { url: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&q=80&w=400', caption: "Extremely chalant for you! 😎", date: 'June 19, 2026' },
+          { url: 'https://images.unsplash.com/photo-1533738363-b7f9aef128ce?auto=format&fit=crop&q=80&w=400', caption: 'A vintage story in panels of your smile 🎞️', date: 'June 19, 2026' },
+          { url: 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&q=80&w=400', caption: 'Cuteness level 100! 🎀', date: 'June 19, 2026' },
+          { url: 'https://images.unsplash.com/photo-1512909006721-3d6018887383?auto=format&fit=crop&q=80&w=400', caption: 'An artistic portrait of a strong loved girl ✦', date: 'June 19, 2026' }
+        ],
+
+        initApp() {
+          setTimeout(() => { if (window.lucide) window.lucide.createIcons(); }, 100);
+        },
+
+        currentTheme() {
+          return this.themes[this.themeColor] || this.themes.Rose;
+        },
+
+        openEnvelope() {
+          this.activeScene = 'card';
+          this.isPlaying = true;
+          this.setupAudio();
+          playNote(this.musicTrack);
+          setTimeout(() => { if (window.lucide) window.lucide.createIcons(); }, 100);
+        },
+
+        openLetter() {
+          this.isFlipped = true;
+          setTimeout(() => { if (window.lucide) window.lucide.createIcons(); }, 100);
+        },
+
+        setupAudio() {
+          if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            mainGain = audioCtx.createGain();
+            mainGain.connect(audioCtx.destination);
+          }
+          if (audioCtx.state === 'suspended') {
+            audioCtx.resume();
+          }
+        },
+
+        togglePlay() {
+          this.isPlaying = !this.isPlaying;
+          if (this.isPlaying) {
+            this.setupAudio();
+            index = 0;
+            playNote(this.musicTrack);
+          } else {
+            clearTimeout(timerId);
+          }
+        },
+
+        changeTrack(v) {
+          clearTimeout(timerId);
+          this.musicTrack = v;
+          if (this.isPlaying && v !== 'silent') {
+            index = 0;
+            this.setupAudio();
+            playNote(v);
+          }
+        },
+
+        addHeart(e) {
+          this.heartCount++;
+          const container = document.getElementById('heart-spawner-container');
+          if (!container) return;
+
+          const startX = e ? e.clientX : window.innerWidth / 2;
+          const startY = e ? e.clientY : window.innerHeight / 2;
+
+          for (let i = 0; i < 5; i++) {
+            const el = document.createElement('div');
+            el.innerHTML = '❤️';
+            el.className = 'absolute text-lg select-none pointer-events-none transition-all duration-1000 ease-out';
+            el.style.left = startX + 'px';
+            el.style.top = startY + 'px';
+            el.style.transform = 'translate(-50%, -50%)';
+            container.appendChild(el);
+
+            const dx = (Math.random() - 0.5) * 160;
+            const dy = -Math.floor(Math.random() * 140 + 80);
+
+            setTimeout(() => {
+              el.style.left = (startX + dx) + 'px';
+              el.style.top = (startY + dy) + 'px';
+              el.style.opacity = '0';
+              el.style.transform = `translate(-50%, -50%) rotate(${Math.random() * 60 - 30}deg) scale(0.5)`;
+            }, 50);
+
+            setTimeout(() => el.remove(), 1100);
+          }
+        }
+      };
+    }
+  </script>
+</body>
+</html>
